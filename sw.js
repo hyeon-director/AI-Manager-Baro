@@ -1,0 +1,10 @@
+const CACHE='baro-0587b18d89';const FILES=["./", "index.html", "manifest.webmanifest", "assets/05843284-011c-411e-9362-3dee9f182480.png", "assets/48402c18-3b83-4207-bb6d-ba17b8092654.woff2", "assets/5bdf489e-c066-4390-92a9-7efed444744d.png", "assets/7be6eee5-020c-48b0-abcf-af3c5cbed5cb.woff2", "assets/a59cefdd-bb9c-4579-9ee9-40aba1f66498.mp4", "assets/admin_mgr.webp", "assets/avChoi.png", "assets/avKim.png", "assets/avLee.png", "assets/avPark.png", "assets/cash_step1.webp", "assets/cash_step2.webp", "assets/cash_step3.webp", "assets/cash_step4.webp", "assets/cash_step5.webp", "assets/cash_step6.webp", "assets/e4014cd9-f8fb-4791-83b6-a975ec9bc290.js", "assets/eec50bbf-0518-4b6d-ae92-387a9fc05e3c.js", "assets/mgr_alpha.webp", "assets/stamp_manager2.mp4", "assets/react.js", "assets/react-dom.js", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png"];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
+async function ranged(req,res){const r=req.headers.get('range');if(!r||!res)return res;const buf=await res.arrayBuffer();const m=/bytes=(\d*)-(\d*)/.exec(r);let s=m&&m[1]?+m[1]:0,e=m&&m[2]?+m[2]:buf.byteLength-1;e=Math.min(e,buf.byteLength-1);
+ return new Response(buf.slice(s,e+1),{status:206,headers:{'Content-Type':res.headers.get('Content-Type')||'video/mp4','Content-Range':`bytes ${s}-${e}/${buf.byteLength}`,'Content-Length':String(e-s+1),'Accept-Ranges':'bytes'}});}
+self.addEventListener('fetch',e=>{const req=e.request;if(req.method!=='GET')return;
+ e.respondWith((async()=>{const c=await caches.open(CACHE);const key=new Request(req.url.split('#')[0]);
+  let res=await c.match(key,{ignoreSearch:true});if(!res&&req.mode==='navigate')res=await c.match('index.html');
+  if(res)return req.headers.get('range')?ranged(req,res):res;
+  try{return await fetch(req);}catch(err){return new Response('',{status:504});}})());});
